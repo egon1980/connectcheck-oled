@@ -39,17 +39,24 @@ apt update -y
 apt install -y python3 python3-pip python3-venv i2c-tools python3-smbus python3-pil python3-psutil git
 
 # Enable I2C automatically
-print_status "Enabling I2C interface..."
+print_status "Checking I2C interface..."
 if ! grep -q "^dtparam=i2c_arm=on" /boot/config.txt; then
     echo "dtparam=i2c_arm=on" >> /boot/config.txt
-fi
-if ! grep -q "^dtparam=i2c_vc=on" /boot/config.txt; then
-    echo "dtparam=i2c_vc=on" >> /boot/config.txt
+    print_status "I2C enabled in /boot/config.txt. A reboot is required for I2C to be fully active."
+else
+    print_status "I2C already enabled in /boot/config.txt."
 fi
 
-# Load I2C modules immediately
-modprobe i2c-dev || true
-modprobe i2c-bcm2835 || true
+# Load modules immediately
+modprobe i2c-dev 2>/dev/null || true
+modprobe i2c-bcm2835 2>/dev/null || true
+
+# Check I2C bus
+if ! i2cdetect -y 1 >/dev/null 2>&1; then
+    print_warning "I2C bus not detected yet. Please reboot your Raspberry Pi to activate I2C."
+else
+    print_status "I2C bus detected."
+fi
 
 # Create virtual environment
 print_status "Creating virtual environment..."
