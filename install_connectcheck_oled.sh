@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# ConnectCheck OLED Display Installer for Raspberry Pi (GitHub-ready, Fixed)
+# ConnectCheck OLED Display Installer for Raspberry Pi (Fixed + I2C auto + cleaner display)
 # Run with: sudo bash install_connectcheck_oled.sh
 
 set -e
@@ -37,10 +37,16 @@ print_status "Starting installation..."
 apt update -y
 apt install -y python3 python3-pip python3-venv i2c-tools python3-smbus python3-pil python3-psutil git
 
-# Enable I2C
+# Enable I2C automatically
+print_status "Enabling I2C interface..."
 if ! grep -q "^dtparam=i2c_arm=on" /boot/config.txt; then
     echo "dtparam=i2c_arm=on" >> /boot/config.txt
 fi
+if ! grep -q "^dtparam=i2c_vc=on" /boot/config.txt; then
+    echo "dtparam=i2c_vc=on" >> /boot/config.txt
+fi
+
+# Load I2C modules immediately
 modprobe i2c-dev || true
 modprobe i2c-bcm2835 || true
 
@@ -70,16 +76,19 @@ class OLEDDisplay:
         try:
             self.serial = i2c(port=1, address=0x3C)
             self.device = sh1106(self.serial)
+            time.sleep(0.1)  # small delay for stable init
+            self.device.clear()
             self.width = self.device.width
             self.height = self.device.height
         except Exception as e:
             print(f"Failed to init OLED: {e}")
             exit(1)
         self.font_small = ImageFont.load_default()
-        self.font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12) if Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf").exists() else ImageFont.load_default()
+        self.font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12) \
+            if Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf").exists() else ImageFont.load_default()
         self.scroll_text = "ConnectCheck Companion Streamdeck V3"
         self.scroll_pos = self.width
-        self.scroll_speed = 2
+        self.scroll_speed = 1  # slower to reduce vertical artifacts
 
     def get_ip_address(self):
         try:
@@ -113,6 +122,9 @@ class OLEDDisplay:
             disk = psutil.disk_usage('/')
             disk_used_gb = disk.used / (1024**3)
             disk_total_gb = disk.total / (1024**3)
+
+            # Optional margins to avoid vertical line artifacts
+            draw.rectangle([1,1,self.width-2,self.height-2], outline=0, fill=0)
 
             draw.text((0, 0), f"IP: {ip}:8000", font=self.font_small, fill=255)
             draw.text((0, 10), f"CPU: {cpu_temp:.1f}°C {cpu_percent:.0f}%", font=self.font_small, fill=255)
