@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# ConnectCheck OLED Display Installer for Raspberry Pi (GitHub-ready, SSD1306)
-# Run with: sudo bash install_connectcheck_oled.sh
-# Supports SSD1306, auto I2C, clean init (no vertical line)
+# ConnectCheck OLED Display Installer for Raspberry Pi (SSD1306, GitHub-ready)
+# One-command installer: sudo bash install_connectcheck_oled.sh
+# Auto I2C activation, clean init, systemd service
 
 set -e
 
@@ -42,7 +42,7 @@ apt install -y python3 python3-pip python3-venv i2c-tools python3-smbus python3-
 print_status "Checking I2C interface..."
 if ! grep -q "^dtparam=i2c_arm=on" /boot/config.txt; then
     echo "dtparam=i2c_arm=on" >> /boot/config.txt
-    print_status "I2C enabled in /boot/config.txt. A reboot is required for I2C to be fully active."
+    print_status "I2C enabled in /boot/config.txt."
 else
     print_status "I2C already enabled in /boot/config.txt."
 fi
@@ -53,9 +53,10 @@ modprobe i2c-bcm2835 2>/dev/null || true
 
 # Check I2C bus
 if ! i2cdetect -y 1 >/dev/null 2>&1; then
-    print_warning "I2C bus not detected yet. Please reboot your Raspberry Pi to activate I2C."
+    print_warning "I2C bus not detected. A reboot is required for the OLED display to work."
+    print_warning "After reboot, the service will start automatically."
 else
-    print_status "I2C bus detected."
+    print_status "I2C bus detected. OLED display should work immediately."
 fi
 
 # Create virtual environment
@@ -194,7 +195,6 @@ systemctl enable "$SERVICE_NAME"
 systemctl start "$SERVICE_NAME"
 
 print_status "Installation complete!"
-i2cdetect -y 1 || print_warning "I2C detection failed. Display may not be connected."
 systemctl status "$SERVICE_NAME" --no-pager -l || true
 
 echo -e "${GREEN}=== Next Steps ===${NC}"
