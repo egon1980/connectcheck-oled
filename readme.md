@@ -4,13 +4,6 @@
 ![Python](https://img.shields.io/badge/python-3.7+-blue)
 ![Platform](https://img.shields.io/badge/platform-Raspberry%20Pi%205-orange)
 ![Status](https://img.shields.io/badge/status-stable-brightgreen)
-
-> Real-time network connectivity monitoring on a crisp OLED display for your Raspberry Pi 5
-
----
-
-
-
 ---
 
 ## 🔍 Overview
@@ -37,6 +30,8 @@ The installer will:
 - ✅ Configure auto-start on boot
 - ✅ Start the service immediately
 
+  Note: de installer only works when the user Connectcheck is enabled
+
 After installation and there is nog display:
 
 Enable I2C Interface
@@ -45,20 +40,16 @@ Enable I2C Interface
 sudo raspi-config
 # Navigate to: Interface Options → I2C → Enable
 ```
+
 And reboot
 
+```bash
 sudo reboot
 ```
 
 #
 
 ---
-
-
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ```
 MIT License
