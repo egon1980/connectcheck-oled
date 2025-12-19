@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# ConnectCheck OLED Display Installer for Raspberry Pi (Fixed + I2C auto + cleaner display)
+# ConnectCheck OLED Display Installer for Raspberry Pi (GitHub-ready, SSD1306)
 # Run with: sudo bash install_connectcheck_oled.sh
+# Supports SSD1306, auto I2C, clean init (no vertical line)
 
 set -e
 
@@ -60,7 +61,7 @@ pip install luma.oled pillow psutil
 # Create script directory
 mkdir -p "$SCRIPT_DIR"
 
-# Create OLED Python script
+# Create OLED Python script (SSD1306, clean init)
 print_status "Creating display script..."
 cat > "$SCRIPT_PATH" << 'EOF'
 #!/usr/bin/env python3
@@ -68,27 +69,31 @@ import time, psutil, socket
 from pathlib import Path
 from luma.core.interface.serial import i2c
 from luma.core.render import canvas
-from luma.oled.device import sh1106
+from luma.oled.device import ssd1306
 from PIL import ImageFont
 
 class OLEDDisplay:
     def __init__(self):
         try:
             self.serial = i2c(port=1, address=0x3C)
-            self.device = sh1106(self.serial)
-            time.sleep(0.1)  # small delay for stable init
+            self.device = ssd1306(self.serial)
+            time.sleep(0.05)
+            self.device.clear()
+            time.sleep(0.05)
             self.device.clear()
             self.width = self.device.width
             self.height = self.device.height
         except Exception as e:
             print(f"Failed to init OLED: {e}")
             exit(1)
+
         self.font_small = ImageFont.load_default()
         self.font_large = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 12) \
             if Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf").exists() else ImageFont.load_default()
+
         self.scroll_text = "ConnectCheck Companion Streamdeck V3"
         self.scroll_pos = self.width
-        self.scroll_speed = 1  # slower to reduce vertical artifacts
+        self.scroll_speed = 1
 
     def get_ip_address(self):
         try:
@@ -116,15 +121,14 @@ class OLEDDisplay:
 
     def display_frame(self):
         with canvas(self.device) as draw:
+            draw.rectangle([0,0,self.width,self.height], outline=0, fill=0)  # first frame full black
+
             ip = self.get_ip_address()
             cpu_temp = self.get_cpu_temp()
             cpu_percent = psutil.cpu_percent(interval=0.1)
             disk = psutil.disk_usage('/')
             disk_used_gb = disk.used / (1024**3)
             disk_total_gb = disk.total / (1024**3)
-
-            # Optional margins to avoid vertical line artifacts
-            draw.rectangle([1,1,self.width-2,self.height-2], outline=0, fill=0)
 
             draw.text((0, 0), f"IP: {ip}:8000", font=self.font_small, fill=255)
             draw.text((0, 10), f"CPU: {cpu_temp:.1f}°C {cpu_percent:.0f}%", font=self.font_small, fill=255)
