@@ -67,7 +67,7 @@ ConnectCheck OLED Display is a lightweight Python application that provides real
 Get ConnectCheck running in under 2 minutes:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/yourusername/connectcheck-oled/main/install_connectcheck_oled.sh | bash
+curl -sSL https://raw.githubusercontent.com/egon1980/connectcheck-oled/main/install_connectcheck_oled.sh | bash
 ```
 
 ---
@@ -80,7 +80,7 @@ The fastest way to install ConnectCheck OLED Display:
 
 ```bash
 # Download and run the installer
-wget -O - https://raw.githubusercontent.com/yourusername/connectcheck-oled/main/install_connectcheck_oled.sh | sudo bash
+wget -O - https://raw.githubusercontent.com/egon1980/connectcheck-oled/main/install_connectcheck_oled.sh | sudo bash
 ```
 
 The installer will:
@@ -116,7 +116,7 @@ sudo apt install -y python3-pip python3-smbus i2c-tools
 #### 4. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/connectcheck-oled.git
+git clone https://github.com/egon1980/connectcheck-oled.git
 cd connectcheck-oled
 ```
 
