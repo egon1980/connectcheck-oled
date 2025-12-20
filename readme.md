@@ -32,7 +32,7 @@ The installer will:
 
   Note: de installer only works when the user Connectcheck is enabled
 
-After installation and there is nog display:
+After installation and there is no display:
 
 Enable I2C Interface
 
